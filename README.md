@@ -1,4 +1,4 @@
-# 🧪 WSS Aura – Buff Systemystem
+# 🧪 WSS Aura – Buff System
 
 ![Buff UI Preview]([https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A]https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A) simple, clean **buff system for FiveM** that provides temporary boosts such as speed, stamina, intelligence, and strength. Buffs are displayed on-screen, persist through reconnects, and automatically expire.
 
