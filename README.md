@@ -1,10 +1,10 @@
 # 🧪 WSS Aura – Buff System
 
-![Buff UI Preview]([https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A]https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A) simple, clean **buff system for FiveM** that provides temporary boosts such as speed, stamina, intelligence, and strength. Buffs are displayed on-screen, persist through reconnects, and automatically expire.
+![Buff UI Preview](image.png)
 
-> ⚡ Lightweight • 🔒 Server-authoritative • 💾 Persistent
+A simple, clean **buff system for FiveM** that provides temporary boosts such as speed, stamina, intelligence, and strength. Buffs are displayed on-screen, persist through reconnects, and automatically expire.
 
----ghtweight • 🔒 Server-authoritative • 💾 Persistent
+> ⚡ Lightweight • 🔒 Server‑authoritative • 💾 Persistent
 
 ---
 
@@ -23,12 +23,13 @@ You do **not** need to manage anything manually.
 
 ## 🧬 Available Buffs
 
-| Buff             | Effect                                             |                                                                               |
-| ---------------- | -------------------------------------------------- | ----------------------------------------------------------------------------- |
-| **Speed**        | Increases run & sprint speed                       |                                                                               |
-| **Stamina**      | Regenerates stamina continuously                   |                                                                               |
-| **Focus**        | Reduces difficulty / timing in supported minigames |                                                                               |
-| **Intelligence** | Increases time allowed in supported minigames      | Buff effects and durations are fully controlled by the server configuration.t |
+| Buff             | Effect                                             |
+| ---------------- | -------------------------------------------------- |
+| **Speed**        | Increases run & sprint speed                       |
+| **Stamina**      | Regenerates stamina continuously                   |
+| **Focus**        | Reduces difficulty / timing in supported minigames |
+| **Intelligence** | Increases time allowed in supported minigames      |
+| **Strength**     | Increases inventory carry weight                   |
 
 > Buff effects and durations are fully controlled by the server configuration.
 
@@ -56,6 +57,8 @@ Your buffs will be **restored automatically** with the remaining time.
 
 ---
 
+## 🖥️ User Interface
+
 * Buffs are displayed on the screen
 * Each buff shows:
 
@@ -65,7 +68,9 @@ Your buffs will be **restored automatically** with the remaining time.
 
 ---
 
-## ❓ Frequently Asked
+## ❓ Frequently Asked Questions
+
+### Do buffs stack?
 
 Yes. Applying the **same buff again extends its timer**.
 
@@ -85,7 +90,7 @@ Buff strength and duration are **server-controlled** and apply equally unless cu
 
 ## 🔌 Available Exports
 
-These exports are provided interact with the buff system.
+These exports are provided for other resources to interact with the buff system.
 
 ### 🖥️ Client Exports
 
@@ -133,7 +138,7 @@ exports['wss-aura']:GetBuffTime(source, buffName)
 
 ## 🧩 Buff Integration Examples
 
-Below are practical examples showing how tinto common FiveM systems.
+Below are practical examples showing how to integrate **wss-aura buffs** into common FiveM systems.
 
 ---
 
@@ -209,13 +214,13 @@ local timeLeft = exports['wss-aura']:GetBuffTime('stamina')
 
 * Buff effects are automatic
 * Buffs cannot be manually removed by players
-* Exploier-side
+* Exploits are prevented server-side
 
 ---
 
 ## 📦 Dependencies
 
-This resource requires the folloto function correctly:
+This resource requires the following dependencies to function correctly:
 
 * **community_bridge** – Framework abstraction (ESX / QBCore compatibility)
 * **oxmysql** – Database persistence for buffs
@@ -234,4 +239,4 @@ Buff System by **zStretz**
 
 ---
 
-If you experience issues or have questions, contact a server a
+If you experience issues or have questions, contact a server administrator.
