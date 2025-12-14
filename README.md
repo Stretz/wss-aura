@@ -142,6 +142,26 @@ Below are practical examples showing how to integrate **wss-aura buffs** into co
 
 ---
 
+### 🚀 Triggering a Buff from Client (Server Event)
+
+Use this when a player consumes an item, finishes an action, or earns a reward.
+
+```lua
+-- Apply a speed buff using the server event
+TriggerServerEvent('buffs:server:requestBuff', 'speed', customBuffs.speed)
+```
+
+**Parameters:**
+
+* `speed` → Buff name
+* `customBuffs.speed` → Duration in seconds (optional, defaults to config)
+
+---
+
+Below are practical examples showing how to integrate **wss-aura buffs** into common FiveM systems.
+
+---
+
 ### 🎯 Focus Buff – Faster ox_lib Progress
 
 ```lua
