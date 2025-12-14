@@ -27,7 +27,7 @@ You do **not** need to manage anything manually.
 | ---------------- | -------------------------------------------------- |
 | **Speed**        | Increases run & sprint speed                       |
 | **Stamina**      | Regenerates stamina continuously                   |
-| **Focus**        | Reduces difficulty / timing in supported minigames |
+| **Focus**        | Designed for Progress Bar Time Reduction           |
 | **Intelligence** | Increases time allowed in supported minigames      |
 | **Strength**     | Increases inventory carry weight                   |
 
