@@ -1,8 +1,10 @@
-# 🧪 WSS Buff System
+# 🧪 WSS Aura – Buff Systemystem
 
-![Buff UI Preview](https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a\&is=693df9fa\&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=\&format=webp\&quality=lossless\&width=269\&height=520)
+![Buff UI Preview]([https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A](https://media.discordapp.net/attachments/1448168670835638334/1449547144158777605/image.png?ex=693f4b7a&is=693df9fa&hm=90edb28fadcb3c695a5ca694f0b27629b63cec91e73c055f227ab0c0d79aa010&=&format=webp&quality=lossless&width=269&height=5A) simple, clean **buff system for FiveM** that provides temporary boosts such as speed, stamina, intelligence, and strength. Buffs are displayed on-screen, persist through reconnects, and automatically expire.
 
-A simple, clean **buff system for FiveM players** that provides temporary boosts such as speed, stamina, intelligence, and strength. Buffs are displayed on-screen, persist through reconnects, and automatically expire.
+> ⚡ Lightweight • 🔒 Server-authoritative • 💾 Persistent
+
+---ghtweight • 🔒 Server-authoritative • 💾 Persistent
 
 ---
 
@@ -21,15 +23,14 @@ You do **not** need to manage anything manually.
 
 ## 🧬 Available Buffs
 
-| Buff             | Effect                                             |
-| ---------------- | -------------------------------------------------- |
-| **Speed**        | Increases run & sprint speed                       |
-| **Stamina**      | Regenerates stamina continuously                   |
-| **Focus**        | Reduces difficulty / timing in supported minigames |
-| **Intelligence** | Increases time allowed in supported minigames      |
-| **Strength**     | Increases inventory carry weight                   |
+| Buff             | Effect                                             |                                                                               |
+| ---------------- | -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Speed**        | Increases run & sprint speed                       |                                                                               |
+| **Stamina**      | Regenerates stamina continuously                   |                                                                               |
+| **Focus**        | Reduces difficulty / timing in supported minigames |                                                                               |
+| **Intelligence** | Increases time allowed in supported minigames      | Buff effects and durations are fully controlled by the server configuration.t |
 
-> Buff effects and durations are set by the server.
+> Buff effects and durations are fully controlled by the server configuration.
 
 ---
 
@@ -55,8 +56,6 @@ Your buffs will be **restored automatically** with the remaining time.
 
 ---
 
-## 🖥️ User Interface
-
 * Buffs are displayed on the screen
 * Each buff shows:
 
@@ -66,9 +65,7 @@ Your buffs will be **restored automatically** with the remaining time.
 
 ---
 
-## ❓ Frequently Asked Questions
-
-### Do buffs stack?
+## ❓ Frequently Asked
 
 Yes. Applying the **same buff again extends its timer**.
 
@@ -86,17 +83,139 @@ Buff strength and duration are **server-controlled** and apply equally unless cu
 
 ---
 
+## 🔌 Available Exports
+
+These exports are provided interact with the buff system.
+
+### 🖥️ Client Exports
+
+Check if specific buffs are active:
+
+```lua
+exports['wss-aura']:IsSpeedActive()
+exports['wss-aura']:IsStaminaActive()
+exports['wss-aura']:IsFocusActive()
+exports['wss-aura']:IsIntelligenceActive()
+exports['wss-aura']:IsStrengthActive()
+```
+
+Generic buff checks:
+
+```lua
+exports['wss-aura']:HasBuff(buffName)       -- returns boolean
+exports['wss-aura']:GetBuffTime(buffName)   -- returns seconds remaining
+```
+
+Intelligence helper (for minigames):
+
+```lua
+exports['wss-aura']:GetBuffedIntelligenceDuration(baseDuration)
+```
+
+---
+
+### 🗄️ Server Exports
+
+Apply a buff to a player:
+
+```lua
+exports['wss-aura']:ActivateBuff(source, buffName, duration)
+```
+
+Check buff state server-side:
+
+```lua
+exports['wss-aura']:IsBuffActive(source, buffName)
+exports['wss-aura']:GetBuffTime(source, buffName)
+```
+
+---
+
+## 🧩 Buff Integration Examples
+
+Below are practical examples showing how tinto common FiveM systems.
+
+---
+
+### 🎯 Focus Buff – Faster ox_lib Progress
+
+```lua
+local focus = exports['wss-aura']:IsFocusActive()
+local duration = data.duration
+
+if focus then
+    duration = (data.duration * 2) / 3 -- 33% faster
+end
+
+lib.progressBar({
+    duration = duration,
+    label = data.label or 'Working...',
+    canCancel = true,
+})
+```
+
+---
+
+### 🧠 Intelligence Buff – Minigame Time Bonus
+
+```lua
+local baseTime = 5000
+local newTime = exports['wss-aura']:GetBuffedIntelligenceDuration(baseTime)
+
+-- pass newTime into your minigame
+```
+
+**Effect:** Gives players more time to complete skill-based actions.
+
+---
+
+### 🏃 Speed Buff – Conditional Logic
+
+```lua
+if exports['wss-aura']:IsSpeedActive() then
+    -- allow faster movement-based interaction
+end
+```
+
+---
+
+### 💪 Strength Buff – Weight-Based Checks
+
+```lua
+if exports['wss-aura']:IsStrengthActive() then
+    -- player can carry heavier items
+end
+```
+
+---
+
+### 🔍 Generic Buff Check
+
+```lua
+if exports['wss-aura']:HasBuff('stamina') then
+    -- stamina-related logic
+end
+```
+
+Get remaining time (seconds):
+
+```lua
+local timeLeft = exports['wss-aura']:GetBuffTime('stamina')
+```
+
+---
+
 ## 🛑 Important Notes
 
 * Buff effects are automatic
 * Buffs cannot be manually removed by players
-* Exploits are prevented server-side
+* Exploier-side
 
 ---
 
 ## 📦 Dependencies
 
-This resource requires the following dependencies to function correctly:
+This resource requires the folloto function correctly:
 
 * **community_bridge** – Framework abstraction (ESX / QBCore compatibility)
 * **oxmysql** – Database persistence for buffs
@@ -115,4 +234,4 @@ Buff System by **zStretz**
 
 ---
 
-If you experience issues or have questions, contact a server administrator.
+If you experience issues or have questions, contact a server a
