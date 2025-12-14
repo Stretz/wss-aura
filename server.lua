@@ -165,8 +165,61 @@ local function isBuffActive(src, buffName)
     return getRemainingTime(src, buffName) > 0
 end
 
+local function getActiveBuffs(src)
+    if not buffs[src] then return {} end
+    
+    local active = {}
+    local now = os.time()
+    
+    for buffName, info in pairs(buffs[src]) do
+        if info.expires and info.expires > now then
+            local remaining = info.expires - now
+            active[buffName] = remaining
+        end
+    end
+    
+    return active
+end
+
 exports('GetBuffTime', getRemainingTime)
 exports('IsBuffActive', isBuffActive)
+
+-- Callback to get active buffs
+lib.callback.register('buffs:server:getActiveBuffs', function(source, targetSrc)
+    local src = targetSrc or source
+    return getActiveBuffs(src)
+end)
+
+-- Callback to request buff activation (validated server-side)
+lib.callback.register('buffs:server:requestActivation', function(source, buffName, duration)
+    local src = source
+    local player = Bridge.Framework.GetPlayer(src)
+    if not player then 
+        DebugPrint(("Invalid player %s tried to activate buff"):format(src))
+        return false 
+    end
+
+    buffName = string.lower(buffName or "")
+    if not Config.BuffDurations[buffName] then
+        DebugPrint(("%s tried to activate invalid buff '%s'"):format(src, buffName))
+        return false
+    end
+
+    -- Validate duration if provided
+    if duration then
+        duration = tonumber(duration)
+        if not duration or duration <= 0 or duration > 3600 then -- Max 1 hour
+            DebugPrint(("%s tried invalid duration %s for buff '%s'"):format(src, tostring(duration), buffName))
+            return false
+        end
+    else
+        duration = Config.BuffDurations[buffName]
+    end
+
+    -- Activate the buff (this will trigger the client event from server)
+    activateBuff(src, buffName, duration)
+    return true
+end)
 
 
 

@@ -16,7 +16,6 @@
 
 
 local Bridge = exports['community_bridge']:Bridge()
-local activeBuffs = {}
 local effectsRunning = false
 
 
@@ -30,25 +29,21 @@ end
 RegisterNetEvent('buffs:client:activate', function(buffName, duration)
     if not buffName or not duration then return end
 
-    local now = GetGameTimer()
-    local expireTime = now + (duration * 1000)
-
-    if activeBuffs[buffName] then
-        -- ⏱ Extend existing buff duration
-        local remaining = activeBuffs[buffName] - now
-        activeBuffs[buffName] = now + remaining + (duration * 1000)
-        DebugPrint(("Extended buff '%s' by %ds (new total: %ds left)"):format(
-            buffName, duration, math.floor((activeBuffs[buffName] - now) / 1000)
-        ))
-        SendNUIMessage({ action = "extend", buff = buffName, duration = duration })
+    -- Validate with server that this buff is actually active
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local serverBuffTime = activeBuffs[buffName] or 0
+    
+    -- Only proceed if server confirms the buff is active
+    if serverBuffTime <= 0 then
+        DebugPrint(("Received activation for '%s' but server doesn't have it active - ignoring"):format(buffName))
         return
     end
 
-    -- New buff activation
-    activeBuffs[buffName] = expireTime
-    Bridge.Notify.SendNotify(("Buff activated: %s (%ds)"):format(buffName, duration), "success", 5000)
-
-    SendNUIMessage({ action = "add", buff = buffName, duration = duration })
+    -- Use server's actual remaining time for accuracy
+    local actualDuration = math.min(duration, serverBuffTime)
+    
+    Bridge.Notify.SendNotify(("Buff activated: %s (%ds)"):format(buffName, actualDuration), "success", 5000)
+    SendNUIMessage({ action = "add", buff = buffName, duration = actualDuration })
     SetNuiFocus(false, false)
 
     if not effectsRunning then
@@ -56,15 +51,12 @@ RegisterNetEvent('buffs:client:activate', function(buffName, duration)
         StartBuffEffects()
     end
 
-    DebugPrint(("Activated buff '%s' (%ds total)"):format(buffName, duration))
+    DebugPrint(("Activated buff '%s' (%ds total)"):format(buffName, actualDuration))
 end)
 
 
 
 RegisterNetEvent('buffs:client:expired', function(buffName)
-    if not activeBuffs[buffName] then return end
-
-    activeBuffs[buffName] = nil
     Bridge.Notify.SendNotify(buffName .. " buff expired.", "error", 5000)
     SendNUIMessage({ action = "remove", buff = buffName })
 
@@ -76,27 +68,10 @@ RegisterNetEvent('buffs:client:expired', function(buffName)
         SetRunSprintMultiplierForPlayer(ply, 1.0)
         DebugPrint("Speed buff expired")
     end
-
-    if next(activeBuffs) == nil then
-        effectsRunning = false
-        -- Ensure speed is reset when all buffs expire
-        local ply = PlayerId()
-        SetRunSprintMultiplierForPlayer(ply, 1.0)
-    end
 end)
 
 
-CreateThread(function()
-    while true do
-        Wait(1000)
-        local now = GetGameTimer()
-        for buffName, expireTime in pairs(activeBuffs) do
-            if now >= expireTime then
-                TriggerEvent('buffs:client:expired', buffName)
-            end
-        end
-    end
-end)
+-- Expiration checking is handled server-side
 
 
 function StartBuffEffects()
@@ -109,32 +84,36 @@ function StartBuffEffects()
             local ped = PlayerPedId()
             local ply = PlayerId()
 
-      
-            local expire = activeBuffs["speed"]
-            local hasSpeed = expire ~= nil and GetGameTimer() < expire
+            -- Query server for active buffs
+            local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+            
+            local hasSpeed = activeBuffs["speed"] ~= nil and activeBuffs["speed"] > 0
 
             if hasSpeed and not lastSpeedState then
-       
                 SetRunSprintMultiplierForPlayer(ply, Config.BuffEffects.speed)
                 DebugPrint(("Speed buff applied (x%.2f)"):format(Config.BuffEffects.speed))
                 lastSpeedState = true
             elseif (not hasSpeed) and lastSpeedState then
- 
                 SetRunSprintMultiplierForPlayer(ply, 1.0)
                 DebugPrint("Speed buff removed (reset to 1.0)")
                 lastSpeedState = false
             end
 
-    
-            if activeBuffs["stamina"] then
+            if activeBuffs["stamina"] and activeBuffs["stamina"] > 0 then
                 RestorePlayerStamina(ply, Config.BuffEffects.stamina)
             end
 
-   
-            if next(activeBuffs) == nil then
-                effectsRunning = false
+            -- Check if any buffs are still active
+            local hasAnyBuffs = false
+            for _, remaining in pairs(activeBuffs) do
+                if remaining > 0 then
+                    hasAnyBuffs = true
+                    break
+                end
+            end
 
-          
+            if not hasAnyBuffs then
+                effectsRunning = false
                 SetRunSprintMultiplierForPlayer(ply, 1.0)
                 DebugPrint("No buffs left — all multipliers reset.")
                 break
@@ -148,37 +127,47 @@ end
 
 
 
-local function isBuffActive(buffName)
-    local expire = activeBuffs[buffName]
-    if not expire then return false end
-    if GetGameTimer() >= expire then
-        activeBuffs[buffName] = nil
-        return false
-    end
-    return true
-end
-
-local function getBuffTime(buffName)
-    local expire = activeBuffs[buffName]
-    if not expire then return 0 end
-    local remaining = math.floor((expire - GetGameTimer()) / 1000)
-    return remaining > 0 and remaining or 0
-end
-
 -- === Exports === --
-exports('IsSpeedActive', function() return isBuffActive('speed') end)
-exports('IsStaminaActive', function() return isBuffActive('stamina') end)
-exports('IsFocusActive', function() return isBuffActive('focus') end)
-exports('IsIntelligenceActive', function() return isBuffActive('intelligence') end)
-exports('IsStrengthActive', function() return isBuffActive('strength') end)
+exports('IsSpeedActive', function()
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs['speed'] ~= nil and activeBuffs['speed'] > 0
+end)
 
-exports('HasBuff', isBuffActive)
-exports('GetBuffTime', getBuffTime)
+exports('IsStaminaActive', function()
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs['stamina'] ~= nil and activeBuffs['stamina'] > 0
+end)
+
+exports('IsFocusActive', function()
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs['focus'] ~= nil and activeBuffs['focus'] > 0
+end)
+
+exports('IsIntelligenceActive', function()
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs['intelligence'] ~= nil and activeBuffs['intelligence'] > 0
+end)
+
+exports('IsStrengthActive', function()
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs['strength'] ~= nil and activeBuffs['strength'] > 0
+end)
+
+exports('HasBuff', function(buffName)
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs[buffName] ~= nil and activeBuffs[buffName] > 0
+end)
+
+exports('GetBuffTime', function(buffName)
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    return activeBuffs[buffName] or 0
+end)
 
 -- Intelligence buff helper for minigame durations
 exports('GetBuffedIntelligenceDuration', function(baseDuration)
     local duration = baseDuration
-    if isBuffActive('intelligence') then
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    if activeBuffs['intelligence'] and activeBuffs['intelligence'] > 0 then
         duration = math.floor(baseDuration * Config.BuffEffects.intelligence)
     end
     
@@ -187,8 +176,8 @@ end)
 
 RegisterCommand('buffcheck', function()
     DebugPrint("=== Buff Debug Info ===")
-    for buffName, expire in pairs(activeBuffs) do
-        local remaining = math.floor((expire - GetGameTimer()) / 1000)
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    for buffName, remaining in pairs(activeBuffs) do
         DebugPrint(("Buff: %s | %ds left"):format(buffName, remaining))
     end
     if next(activeBuffs) == nil then
@@ -202,11 +191,12 @@ AddEventHandler('playerDropped', function ()
     local ply = PlayerId()
     SetRunSprintMultiplierForPlayer(ply, 1.0) -- always reset run speed
 
-    -- Clear all buffs and stop loops
+    -- Get active buffs from server to clear UI
+    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
     for buffName, _ in pairs(activeBuffs) do
         SendNUIMessage({ action = "remove", buff = buffName })
     end
-    activeBuffs = {}
+    
     effectsRunning = false
 
     -- Inform the server to clear DB buffs
@@ -215,3 +205,6 @@ AddEventHandler('playerDropped', function ()
     DebugPrint("All buffs cleared on logout.")
 end)
 
+RegisterCommand("buff:test", function()
+
+end)
