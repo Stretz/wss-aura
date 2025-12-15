@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'WSS-Development'
 description 'Buff System made by zStretz'
-version '0.0.1'
+version '1.0.1'
 
 ui_page 'html/index.html'
 
@@ -15,7 +15,6 @@ files {
 
 shared_scripts {
         '@ox_lib/init.lua',
-        '@lation_ui/init.lua',
         'config.lua'
 }
 server_script {
