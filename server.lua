@@ -16,7 +16,8 @@
 
 local buffs = {}
 local Bridge = exports['community_bridge']:Bridge()
-
+local versionChecker = Bridge.Version.VersionChecker('Stretz/wss-aura', false)
+print(versionChecker)
 
 local function DebugPrint(msg)
     if Config.Debug then
@@ -70,15 +71,15 @@ local function savePlayerBuffsToDB(src)
     local buffJson = serializeBuffsForDB(src)
 
     if buffJson == "{}" then
-        MySQL.query('DELETE FROM player_buffs WHERE citizenid = ?', { citizenid })
+        Bridge.SQL.Delete("player_buffs", "citizenid = '" .. citizenid .. "'")
         DebugPrint(("Deleted empty buff record for %s"):format(citizenid))
         return
     end
 
-    local ok = MySQL.insert.await(
-        'REPLACE INTO player_buffs (citizenid, buffs) VALUES (?, ?)',
-        { citizenid, buffJson }
-    )
+    Bridge.SQL.InsertOrUpdate("player_buffs", {
+        citizenid = citizenid,
+        buffs = buffJson
+    })
 
     DebugPrint(("Saved buffs for %s → %s"):format(citizenid, buffJson))
 end
@@ -185,13 +186,13 @@ exports('GetBuffTime', getRemainingTime)
 exports('IsBuffActive', isBuffActive)
 
 -- Callback to get active buffs
-lib.callback.register('buffs:server:getActiveBuffs', function(source, targetSrc)
+Bridge.Callback.Register('buffs:server:getActiveBuffs', function(source, targetSrc)
     local src = targetSrc or source
     return getActiveBuffs(src)
 end)
 
 -- Callback to request buff activation (validated server-side)
-lib.callback.register('buffs:server:requestActivation', function(source, buffName, duration)
+Bridge.Callback.Register('buffs:server:requestActivation', function(source, buffName, duration)
     local src = source
     local player = Bridge.Framework.GetPlayer(src)
     if not player then 
@@ -251,7 +252,7 @@ RegisterNetEvent("aura:retrievebuffs", function()
 
     buffs[src] = {}
 
-    local result = MySQL.single.await('SELECT buffs FROM player_buffs WHERE citizenid = ?', { citizenid })
+    local result = Bridge.SQL.Get("player_buffs", "citizenid = '" .. citizenid .. "'")
     if not result or not result.buffs then return end
 
     local decoded = deserializeBuffs(result.buffs)
@@ -326,7 +327,7 @@ CreateThread(function()
 
         DebugPrint("Running automatic database cleanup...")
 
-        local results = MySQL.query.await('SELECT citizenid, buffs FROM player_buffs')
+        local results = Bridge.SQL.Get("player_buffs")
         if results and #results > 0 then
             local cleanedRows, cleanedBuffs = 0, 0
 
@@ -349,11 +350,14 @@ CreateThread(function()
                         end
 
                         if next(decoded) == nil then
-                            MySQL.query('DELETE FROM player_buffs WHERE citizenid = ?', { cid })
+                            Bridge.SQL.Delete("player_buffs", "citizenid = '" .. cid .. "'")
                             cleanedRows = cleanedRows + 1
                         elseif changed then
                             local newJson = json.encode(decoded)
-                            MySQL.update('UPDATE player_buffs SET buffs = ? WHERE citizenid = ?', { newJson, cid })
+                            Bridge.SQL.InsertOrUpdate("player_buffs", {
+                                citizenid = cid,
+                                buffs = newJson
+                            })
                             cleanedRows = cleanedRows + 1
                         end
                     end
@@ -420,3 +424,5 @@ RegisterNetEvent('buffs:server:clearPlayerBuffs', function()
     DebugPrint(("Player %s logged out — buffs cleared from memory & DB."):format(src))
 
 end)
+
+Bridge.Version.VersionChecker('Stretz/wss-aura', false)

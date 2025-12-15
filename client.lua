@@ -30,7 +30,7 @@ RegisterNetEvent('buffs:client:activate', function(buffName, duration)
     if not buffName or not duration then return end
 
     -- Validate with server that this buff is actually active
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     local serverBuffTime = activeBuffs[buffName] or 0
     
     -- Only proceed if server confirms the buff is active
@@ -85,7 +85,7 @@ function StartBuffEffects()
             local ply = PlayerId()
 
             -- Query server for active buffs
-            local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+            local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
             
             local hasSpeed = activeBuffs["speed"] ~= nil and activeBuffs["speed"] > 0
 
@@ -129,44 +129,44 @@ end
 
 -- === Exports === --
 exports('IsSpeedActive', function()
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs['speed'] ~= nil and activeBuffs['speed'] > 0
 end)
 
 exports('IsStaminaActive', function()
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs['stamina'] ~= nil and activeBuffs['stamina'] > 0
 end)
 
 exports('IsFocusActive', function()
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs['focus'] ~= nil and activeBuffs['focus'] > 0
 end)
 
 exports('IsIntelligenceActive', function()
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs['intelligence'] ~= nil and activeBuffs['intelligence'] > 0
 end)
 
 exports('IsStrengthActive', function()
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs['strength'] ~= nil and activeBuffs['strength'] > 0
 end)
 
 exports('HasBuff', function(buffName)
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs[buffName] ~= nil and activeBuffs[buffName] > 0
 end)
 
 exports('GetBuffTime', function(buffName)
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     return activeBuffs[buffName] or 0
 end)
 
 -- Intelligence buff helper for minigame durations
 exports('GetBuffedIntelligenceDuration', function(baseDuration)
     local duration = baseDuration
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     if activeBuffs['intelligence'] and activeBuffs['intelligence'] > 0 then
         duration = math.floor(baseDuration * Config.BuffEffects.intelligence)
     end
@@ -176,7 +176,7 @@ end)
 
 RegisterCommand('buffcheck', function()
     DebugPrint("=== Buff Debug Info ===")
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     for buffName, remaining in pairs(activeBuffs) do
         DebugPrint(("Buff: %s | %ds left"):format(buffName, remaining))
     end
@@ -192,7 +192,7 @@ AddEventHandler('playerDropped', function ()
     SetRunSprintMultiplierForPlayer(ply, 1.0) -- always reset run speed
 
     -- Get active buffs from server to clear UI
-    local activeBuffs = lib.callback.await('buffs:server:getActiveBuffs', false) or {}
+    local activeBuffs = Bridge.Callback.Trigger('buffs:server:getActiveBuffs') or {}
     for buffName, _ in pairs(activeBuffs) do
         SendNUIMessage({ action = "remove", buff = buffName })
     end
