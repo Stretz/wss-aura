@@ -71,15 +71,15 @@ local function savePlayerBuffsToDB(src)
     local buffJson = serializeBuffsForDB(src)
 
     if buffJson == "{}" then
-        Bridge.SQL.Delete("player_buffs", "citizenid = '" .. citizenid .. "'")
+        MySQL.query('DELETE FROM player_buffs WHERE citizenid = ?', { citizenid })
         DebugPrint(("Deleted empty buff record for %s"):format(citizenid))
         return
     end
 
-    Bridge.SQL.InsertOrUpdate("player_buffs", {
-        citizenid = citizenid,
-        buffs = buffJson
-    })
+    local ok = MySQL.insert.await(
+        'REPLACE INTO player_buffs (citizenid, buffs) VALUES (?, ?)',
+        { citizenid, buffJson }
+    )
 
     DebugPrint(("Saved buffs for %s → %s"):format(citizenid, buffJson))
 end
@@ -252,7 +252,7 @@ RegisterNetEvent("aura:retrievebuffs", function()
 
     buffs[src] = {}
 
-    local result = Bridge.SQL.Get("player_buffs", "citizenid = '" .. citizenid .. "'")
+    local result = MySQL.single.await('SELECT buffs FROM player_buffs WHERE citizenid = ?', { citizenid })
     if not result or not result.buffs then return end
 
     local decoded = deserializeBuffs(result.buffs)
@@ -327,7 +327,7 @@ CreateThread(function()
 
         DebugPrint("Running automatic database cleanup...")
 
-        local results = Bridge.SQL.Get("player_buffs")
+        local results = MySQL.query.await('SELECT citizenid, buffs FROM player_buffs')
         if results and #results > 0 then
             local cleanedRows, cleanedBuffs = 0, 0
 
@@ -350,14 +350,11 @@ CreateThread(function()
                         end
 
                         if next(decoded) == nil then
-                            Bridge.SQL.Delete("player_buffs", "citizenid = '" .. cid .. "'")
+                            MySQL.query('DELETE FROM player_buffs WHERE citizenid = ?', { cid })
                             cleanedRows = cleanedRows + 1
                         elseif changed then
                             local newJson = json.encode(decoded)
-                            Bridge.SQL.InsertOrUpdate("player_buffs", {
-                                citizenid = cid,
-                                buffs = newJson
-                            })
+                            MySQL.update('UPDATE player_buffs SET buffs = ? WHERE citizenid = ?', { newJson, cid })
                             cleanedRows = cleanedRows + 1
                         end
                     end
