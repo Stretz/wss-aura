@@ -16,8 +16,7 @@
 
 local buffs = {}
 local Bridge = exports['community_bridge']:Bridge()
-local versionChecker = Bridge.Version.VersionChecker('Stretz/wss-aura', false)
-print(versionChecker)
+Bridge.Version.VersionChecker('Stretz/wss-aura', false)
 
 local function DebugPrint(msg)
     if Config.Debug then
