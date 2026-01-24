@@ -14,11 +14,6 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-
--- Dumping database structure for freedomproject_dev
-CREATE DATABASE IF NOT EXISTS `freedomproject_dev` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
-USE `freedomproject_dev`;
-
 -- Dumping structure for table freedomproject_dev.player_buffs
 CREATE TABLE IF NOT EXISTS `player_buffs` (
   `citizenid` varchar(50) NOT NULL,
@@ -33,3 +28,4 @@ CREATE TABLE IF NOT EXISTS `player_buffs` (
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
