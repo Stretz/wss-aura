@@ -1,5 +1,11 @@
 # 📚 WSS Aura - Complete Documentation
 
+Discord:
+- https://discord.gg/vD4HdfPm3H
+
+Store:
+- https://wss-development.tebex.io/
+
 # – Buff System
 
 ![Buff UI Preview](image.png)
